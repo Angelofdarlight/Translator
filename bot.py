@@ -26,32 +26,32 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # DeepL unterstützt nicht jede Google-Translate-Sprache. Diese Liste enthält
 # die von DeepL unterstützten Zielsprachen und mehrere passende Flaggen.
 FLAG_LANGUAGES = {
-    "🇩🇪": "DE", "🇦🇹": "DE", "🇨🇭": "DE",
-    "🇬🇧": "EN-GB", "🇺🇸": "EN-US", "🇨🇦": "EN-US", "🇦🇺": "EN-GB",
-    "🇫🇷": "FR",
-    "🇪🇸": "ES", "🇲🇽": "ES", "🇦🇷": "ES",
-    "🇮🇹": "IT",
-    "🇵🇹": "PT-PT", "🇧🇷": "PT-BR",
-    "🇳🇱": "NL",
-    "🇵🇱": "PL", "🇷🇺": "RU", "🇺🇦": "UK",
-    "🇨🇿": "CS", "🇸🇰": "SK", "🇸🇮": "SL",
-    "🇭🇺": "HU", "🇷🇴": "RO", "🇧🇬": "BG",
-    "🇩🇰": "DA", "🇸🇪": "SV", "🇳🇴": "NB", "🇫🇮": "FI",
-    "🇬🇷": "EL", "🇹🇷": "TR", "🇮🇩": "ID",
-    "🇯🇵": "JA", "🇨🇳": "ZH", "🇰🇷": "KO",
+    # DeeplTranslator erwartet diese Codes in Kleinbuchstaben.
+    "🇩🇪": "de", "🇦🇹": "de", "🇨🇭": "de",
+    "🇬🇧": "en", "🇺🇸": "en", "🇨🇦": "en", "🇦🇺": "en",
+    "🇫🇷": "fr",
+    "🇪🇸": "es", "🇲🇽": "es", "🇦🇷": "es",
+    "🇮🇹": "it",
+    "🇵🇹": "pt", "🇧🇷": "pt",
+    "🇳🇱": "nl",
+    "🇵🇱": "pl", "🇷🇺": "ru", "🇺🇦": "uk",
+    "🇨🇿": "cs", "🇸🇰": "sk", "🇸🇮": "sl",
+    "🇭🇺": "hu", "🇷🇴": "ro", "🇧🇬": "bg",
+    "🇩🇰": "da", "🇸🇪": "sv", "🇳🇴": "nb", "🇫🇮": "fi",
+    "🇬🇷": "el", "🇹🇷": "tr", "🇮🇩": "id",
+    "🇯🇵": "ja", "🇨🇳": "zh", "🇰🇷": "ko",
 }
 
 LANGUAGE_NAMES = {
-    "DE": "Deutsch", "EN-GB": "Englisch (UK)", "EN-US": "Englisch (US)",
-    "FR": "Französisch", "ES": "Spanisch", "IT": "Italienisch",
-    "PT-PT": "Portugiesisch (Portugal)", "PT-BR": "Portugiesisch (Brasilien)",
-    "NL": "Niederländisch", "PL": "Polnisch", "RU": "Russisch",
-    "UK": "Ukrainisch", "CS": "Tschechisch", "SK": "Slowakisch",
-    "SL": "Slowenisch", "HU": "Ungarisch", "RO": "Rumänisch",
-    "BG": "Bulgarisch", "DA": "Dänisch", "SV": "Schwedisch",
-    "NB": "Norwegisch", "FI": "Finnisch", "EL": "Griechisch",
-    "TR": "Türkisch", "ID": "Indonesisch", "JA": "Japanisch",
-    "ZH": "Chinesisch", "KO": "Koreanisch",
+    "de": "Deutsch", "en": "Englisch", "fr": "Französisch",
+    "es": "Spanisch", "it": "Italienisch", "pt": "Portugiesisch",
+    "nl": "Niederländisch", "pl": "Polnisch", "ru": "Russisch",
+    "uk": "Ukrainisch", "cs": "Tschechisch", "sk": "Slowakisch",
+    "sl": "Slowenisch", "hu": "Ungarisch", "ro": "Rumänisch",
+    "bg": "Bulgarisch", "da": "Dänisch", "sv": "Schwedisch",
+    "nb": "Norwegisch", "fi": "Finnisch", "el": "Griechisch",
+    "tr": "Türkisch", "id": "Indonesisch", "ja": "Japanisch",
+    "zh": "Chinesisch", "ko": "Koreanisch",
 }
 
 LANGUAGE_PAGE_SIZE = 20
@@ -184,7 +184,7 @@ async def add_translation_buttons(interaction: discord.Interaction, message: dis
 @bot.tree.command(name="translate", description="Übersetzt einen Text mit DeepL")
 @app_commands.describe(text="Der Text", target="DeepL-Zielcode, z. B. DE, EN-US oder FR")
 async def translate(interaction: discord.Interaction, text: str, target: str = "DE"):
-    target = target.upper()
+    target = target.lower()
     await interaction.response.defer(ephemeral=True)
     try:
         await interaction.followup.send(await translate_text(text, target), ephemeral=True)
