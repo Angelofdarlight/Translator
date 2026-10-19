@@ -5,7 +5,7 @@ import os
 import discord
 from discord import app_commands
 from discord.ext import commands
-from deep_translator import GoogleTranslator
+from deep_translator import MyMemoryTranslator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -81,7 +81,7 @@ LANGUAGE_PAGE_SIZE = 20
 async def translate_text(text: str, target: str) -> str:
     """Führt die synchrone Übersetzung aus, ohne den Discord-Event-Loop zu blockieren."""
     return await asyncio.to_thread(
-        GoogleTranslator(source="auto", target=target).translate, text
+        MyMemoryTranslator(source="auto", target=target).translate, text
     )
 
 
@@ -339,7 +339,7 @@ bot.run(TOKEN)
 import discord
 from discord import app_commands
 from discord.ext import commands
-from deep_translator import GoogleTranslator
+from deep_translator import MyMemoryTranslator
 import os
 from dotenv import load_dotenv
 
@@ -386,7 +386,7 @@ async def translate(interaction: discord.Interaction, text: str, target: str = "
     await interaction.response.defer(ephemeral=True)
     
     try:
-        translated = GoogleTranslator(source='auto', target=target.lower()).translate(text)
+        translated = MyMemoryTranslator(source='auto', target=target.lower()).translate(text)
         await interaction.followup.send(translated, ephemeral=True)
     except Exception as e:
         await interaction.followup.send(f"Fehler: `{e}`", ephemeral=True)
@@ -403,7 +403,7 @@ async def translate_to_german(interaction: discord.Interaction, message: discord
         return
     
     try:
-        translated = GoogleTranslator(source='auto', target='de').translate(message.content)
+        translated = MyMemoryTranslator(source='auto', target='de').translate(message.content)
         await interaction.followup.send(translated, ephemeral=True)
     except Exception as e:
         await interaction.followup.send(f"Fehler: `{e}`", ephemeral=True)
@@ -417,7 +417,7 @@ async def translate_to_english(interaction: discord.Interaction, message: discor
         return
     
     try:
-        translated = GoogleTranslator(source='auto', target='en').translate(message.content)
+        translated = MyMemoryTranslator(source='auto', target='en').translate(message.content)
         await interaction.followup.send(translated, ephemeral=True)
     except Exception as e:
         await interaction.followup.send(f"Error: `{e}`", ephemeral=True)
@@ -450,7 +450,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
     user = payload.member or await bot.fetch_user(payload.user_id)
 
     try:
-        translated = GoogleTranslator(source='auto', target=lang).translate(message.content)
+        translated = MyMemoryTranslator(source='auto', target=lang).translate(message.content)
         
         # Private Nachricht nur an den User, der reagiert hat
         try:
