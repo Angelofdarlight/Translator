@@ -132,19 +132,22 @@ class TranslationButton(discord.ui.Button):
             style=discord.ButtonStyle.secondary,
             emoji=emoji,
             label=LANGUAGE_NAMES.get(target_language, target_language.upper()),
-            custom_id=f"translate:{emoji}",
+            # Wichtig: keine Emoji mehr in der custom_id
+            custom_id=f"translate_{target_language}_{hash(emoji) % 10000}",
         )
         self.target_language = target_language
 
     async def callback(self, interaction: discord.Interaction) -> None:
         source_message = self.view.source_message
-        if not source_message.content:
+
+        if not source_message or not source_message.content:
             await interaction.response.send_message(
                 "Diese Nachricht hat keinen Text.", ephemeral=True
             )
             return
 
         await interaction.response.defer(ephemeral=True)
+
         try:
             translated = await translate_text(source_message.content, self.target_language)
             language = LANGUAGE_NAMES.get(self.target_language, self.target_language.upper())
@@ -155,9 +158,13 @@ class TranslationButton(discord.ui.Button):
             )
             for part in split_message(translated):
                 await interaction.followup.send(part, ephemeral=True)
+
         except Exception as error:
-            logger.exception("Button-Übersetzung fehlgeschlagen: %s", error)
-            await interaction.followup.send(f"Fehler: `{error}`", ephemeral=True)
+            logger.exception("Button-Übersetzung fehlgeschlagen")
+            await interaction.followup.send(
+                f"❌ Fehler bei der Übersetzung:\n```{error}```",
+                ephemeral=True
+            )
 
 class PageButton(discord.ui.Button):
     def __init__(self, direction: int):
