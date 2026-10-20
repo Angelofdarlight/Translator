@@ -3,9 +3,9 @@ import logging
 import os
 
 import discord
+import requests
 from discord import app_commands
 from discord.ext import commands
-from deep_translator import DeeplTranslator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -74,17 +74,24 @@ def split_message(text: str, limit: int = 2_000) -> list[str]:
 
 
 async def translate_text(text: str, target: str) -> str:
-    """DeepL ist synchron; die Anfrage läuft deshalb in einem Worker-Thread."""
+    """Übersetzt direkt über die offizielle DeepL-Free-API."""
     if not DEEPL_API_KEY:
         raise RuntimeError("DEEPL_API_KEY ist in Railway nicht gesetzt.")
 
-    return await asyncio.to_thread(
-        lambda: DeeplTranslator(
-            api_key=DEEPL_API_KEY,
-            source="auto",
-            target=target,
-        ).translate(text)
-    )
+    def request_translation() -> str:
+        response = requests.post(
+            "https://api-free.deepl.com/v2/translate",
+            headers={"Authorization": f"DeepL-Auth-Key {DEEPL_API_KEY}"},
+            data={"text": text, "target_lang": target.upper()},
+            timeout=30,
+        )
+        if response.status_code >= 400:
+            logger.error("DeepL API antwortete mit HTTP %s", response.status_code)
+            raise RuntimeError("DeepL API request failed")
+        body = response.json()
+        return body["translations"][0]["text"]
+
+    return await asyncio.to_thread(request_translation)
 
 
 class TranslationButton(discord.ui.Button):
@@ -119,9 +126,10 @@ class TranslationButton(discord.ui.Button):
             for part in split_message(translated):
                 await interaction.followup.send(part, ephemeral=True)
         except Exception as error:
-            logger.exception("DeepL-Übersetzung fehlgeschlagen")
+            logger.exception("DeepL-Übersetzung fehlgeschlagen: %s", error)
             await interaction.followup.send(
-                f"Übersetzung fehlgeschlagen: `{error}`", ephemeral=True
+                "Übersetzung fehlgeschlagen. Bitte prüfe den DeepL-API-Schlüssel in Railway.",
+                ephemeral=True,
             )
 
 
@@ -189,7 +197,11 @@ async def translate(interaction: discord.Interaction, text: str, target: str = "
     try:
         await interaction.followup.send(await translate_text(text, target), ephemeral=True)
     except Exception as error:
-        await interaction.followup.send(f"Übersetzung fehlgeschlagen: `{error}`", ephemeral=True)
+        logger.exception("DeepL-Übersetzung fehlgeschlagen: %s", error)
+        await interaction.followup.send(
+            "Übersetzung fehlgeschlagen. Bitte prüfe den DeepL-API-Schlüssel in Railway.",
+            ephemeral=True,
+        )
 
 
 @bot.tree.command(name="translate_buttons", description="Zeigt private Flaggen-Buttons für eine Nachricht an")
